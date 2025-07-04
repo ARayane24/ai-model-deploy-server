@@ -50,7 +50,8 @@ def run_inference(model: Any, framework: str, inputs: List, params: Optional[dic
     elif framework == "onnx":
         # ONNX Runtime model
         input_name = model.get_inputs()[0].name
-        result = model.run(None, {input_name: np.array(inputs)})[0]
+        input_array = np.array(inputs, dtype=np.float32)
+        result = model.run(None, {input_name: input_array})[0]
         if "threshold" in params:
             return (result > params["threshold"]).astype(int).tolist()
         return result.tolist()
