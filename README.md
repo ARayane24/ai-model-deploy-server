@@ -64,6 +64,26 @@ docker run -p 8000:8000 ai-model-api
 
 ## 🔍 API Endpoints
 
+### `GET /`
+
+Returns a welcome message, basic API information, and a list of available endpoints, including local and global IP addresses and the port.
+
+**Response:**
+```json
+{
+  "message": "AI Model Deploy Server is running.",
+  "global_ip": "203.0.113.42",
+  "port": 8000,
+  "endpoints": [
+    {"path": "/", "method": "GET", "description": "Server status and info"},
+    {"path": "/upload_model", "method": "POST", "description": "Upload a new model"},
+    {"path": "/predict", "method": "POST", "description": "Run inference on a model"},
+    {"path": "/delete_model/{model_name}", "method": "DELETE", "description": "Delete a model"}
+  ]
+}
+```
+```
+
 ### `POST /upload_model`
 
 Upload a model file and its metadata.
@@ -93,7 +113,9 @@ Run inference using a previously uploaded model.
 {
   "model_name": "user_model.pkl",
   "inputs": [[5.1, 3.5, 1.4, 0.2]],
-  "params": {}
+  "params": {
+    "device": "cpu"
+  }
 }
 ```
 
