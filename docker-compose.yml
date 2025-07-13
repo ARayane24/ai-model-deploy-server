@@ -4,8 +4,11 @@ services:
   api:
     build:
       context: .
+    env_file:
+      - .env
     volumes:
       - .:/project:Z
+      - storage_volume:/project/storage
     working_dir: /project
     ports:
       - "8000:8000"
@@ -13,4 +16,21 @@ services:
       - PYTHONPATH=/project
       - TF_CPP_MIN_LOG_LEVEL=2
       - MPLCONFIGDIR=/tmp/matplotlib
+    depends_on:
+      - db
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:15
+    restart: always
+    container_name: db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+volumes:
+  storage_volume:
+  postgres_data:

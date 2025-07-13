@@ -1,1 +1,42 @@
-{}
+{
+  "e2551b74234c46df9d3d1c61f1a8449b.onnx": {
+    "name": "MOE System Final",
+    "description": "Multi-Output Encoder system in ONNX format.",
+    "tags": [
+      "segmentation",
+      "remote sensing",
+      "onnx"
+    ],
+    "framework": "onnx"
+  },
+  "a553cf4746514ffba3ef86c3f9ea7485.onnx": {
+    "name": "MOE System Final",
+    "description": "Multi-Output Encoder system in ONNX format.",
+    "tags": [
+      "segmentation",
+      "remote sensing",
+      "onnx"
+    ],
+    "framework": "onnx"
+  },
+  "c66b1463efff4136bc33ca33738efc4e.onnx": {
+    "name": "MOE System Final",
+    "description": "Multi-Output Encoder system in ONNX format.",
+    "tags": [
+      "segmentation",
+      "remote sensing",
+      "onnx"
+    ],
+    "framework": "onnx"
+  },
+  "8cf06a925fcc4ef2b1634bcdc7896223.onnx": {
+    "name": "MOE System Final",
+    "description": "Multi-Output Encoder system in ONNX format.",
+    "tags": [
+      "segmentation",
+      "remote sensing",
+      "onnx"
+    ],
+    "framework": "onnx"
+  }
+}

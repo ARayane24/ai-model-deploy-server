@@ -8,7 +8,7 @@ from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
 # === 📂 Load model name ===
-with open("model_name.txt", "r") as f:
+with open("./test_user/model_name.txt", "r") as f:
     model_name = f.read().strip()
 
 # === 🧠 Load digits data again and split ===
@@ -27,10 +27,13 @@ sample_image = images_test[idx]
 
 # === 🔮 Send Prediction Request ===
 req_payload = {
-    "model_name": model_name,
-    "inputs": sample_input,
-    "params": {}
-}
+            "model_name": model_name,
+            "inputs": sample_input,
+            "params": {
+                "device": "cpu"
+            },
+            "save_result": True 
+        }
 
 response = requests.post("http://127.0.0.1:8000/predict", json=req_payload)
 

@@ -25,9 +25,10 @@ model_bytes.seek(0)
 
 # === 📄 Define Metadata ===
 metadata = {
-    "framework": "sklearn",
-    "input_type": "list",
-    "output_type": "class"
+    "name": "Digits Classifier",
+    "description": "Logistic Regression model trained on sklearn digits dataset.",
+    "tags": ["sklearn", "digits", "classifier"],
+    "framework": "sklearn"
 }
 
 # === ⬆️ Upload Model and Metadata ===
@@ -41,8 +42,9 @@ response = requests.post(
 upload_json = response.json()
 print("✅ Upload Response:", upload_json)
 
-# Save model name and test data
+# Save model file name for later use
 with open("test_user/model_name.txt", "w") as f:
-    f.write(upload_json["model"])
+    f.write(upload_json["file_name"])
+
 
 np.savez("test_data.npz", X_test=X_test, y_test=y_test, images=digits.images)

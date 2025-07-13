@@ -2,29 +2,33 @@
 
 A **FastAPI**-powered backend that allows users to:
 
-* 🔼 Upload machine learning models (e.g., `scikit-learn` `.pkl`, `TensorFlow`, `PyTorch`, `ONNX`)
-* 🤖 Run inference on uploaded models
-* ❌ Delete stored models and associated metadata
-* 🧾 Manage and persist model metadata
+* 🔼 Upload machine learning models (`.pkl`, `.onnx`, `.pt`, etc.)
+* 🤖 Run inference with optional result persistence to a PostgreSQL database
+* ❌ Delete models and all related metadata and results
+* 🧾 Manage and query saved inference results
+* 📦 Manage models via file system and database
 
 ---
 
 ## 🚀 Features
 
-* Supports multiple ML frameworks: `scikit-learn`, `TensorFlow`, `PyTorch`, `ONNX`, and generic pickled models
-* Perform predictions via JSON API
-* Dynamically load and unload models at runtime
-* Metadata handling for framework, input/output types
-* Clean separation of models and metadata in the file system
+* 🔧 Multi-framework support: `scikit-learn`, `TensorFlow`, `PyTorch`, `ONNX`, and generic `pickle`
+* 📤 Upload models and save their metadata
+* 🔎 Query and filter saved models by name, description, or tag
+* 🧠 Perform inference on uploaded models
+* 💾 Optionally save inference results to the database
+* 📥 Retrieve all saved results via an API
+* 🧼 Clean deletion of models and associated results from disk and database
 
 ---
 
 ## 🧰 Requirements
 
 * Python 3.11
-* Dependencies from `requirements.txt`
+* PostgreSQL (for persistent result storage)
+* Dependencies in `requirements.txt`
 
-Or, for containerized usage:
+Optional:
 
 * Docker
 
@@ -35,20 +39,22 @@ Or, for containerized usage:
 ### 💻 Local Setup
 
 ```bash
-# Clone the repo and navigate to the project
+# Clone and enter the repo
 git clone <your-repo-url>
 cd ai_model_api
 
-# Create and activate a virtual environment
+# Create a virtual environment
 python -m venv .venv
 source .venv/bin/activate
 
-# Install required packages
+# Install dependencies
 pip install -r requirements.txt
 
 # Run the API
 uvicorn app.main:app --reload
 ```
+
+---
 
 ### 🐳 Docker Setup
 
@@ -66,38 +72,25 @@ docker run -p 8000:8000 ai-model-api
 
 ### `GET /`
 
-Returns a welcome message, basic API information, and a list of available endpoints, including local and global IP addresses and the port.
+Returns a welcome message, IP address, and list of all available endpoints.
 
-**Response:**
-```json
-{
-  "message": "AI Model Deploy Server is running.",
-  "global_ip": "203.0.113.42",
-  "port": 8000,
-  "endpoints": [
-    {"path": "/", "method": "GET", "description": "Server status and info"},
-    {"path": "/upload_model", "method": "POST", "description": "Upload a new model"},
-    {"path": "/predict", "method": "POST", "description": "Run inference on a model"},
-    {"path": "/delete_model/{model_name}", "method": "DELETE", "description": "Delete a model"}
-  ]
-}
-```
-```
+---
 
 ### `POST /upload_model`
 
-Upload a model file and its metadata.
+Upload a machine learning model and its metadata.
 
 **Form fields**:
 
-* `model_file`: binary file (`.pkl`, `.onnx`, etc.)
-* `metadata_json`: JSON string
+* `model_file`: Model file (`.onnx`, `.pkl`, `.pt`, etc.)
+* `metadata_json`: JSON string, example:
 
 ```json
 {
-  "framework": "sklearn",
-  "input_type": "list",
-  "output_type": "class"
+  "name": "MOE System Final",
+  "description": "Multi-Output Encoder system in ONNX format.",
+  "tags": ["onnx", "segmentation"],
+  "framework": "onnx"
 }
 ```
 
@@ -105,25 +98,55 @@ Upload a model file and its metadata.
 
 ### `POST /predict`
 
-Run inference using a previously uploaded model.
+Run inference on a specific model.
 
-**Body** (JSON):
+**Request body**:
 
 ```json
 {
-  "model_name": "user_model.pkl",
-  "inputs": [[5.1, 3.5, 1.4, 0.2]],
+  "model_name": "cbe8bf6e9a814c4888056c3342ad6c9a.onnx",
+  "inputs": [[...input vector...]],
   "params": {
-    "device": "cpu"
-  }
+    "device": "cpu",
+    "threshold": 0.5
+  },
+  "save_result": true
 }
 ```
+
+**If `save_result` is true**, the result will be saved in the database and an ID will be returned.
+
+---
+
+### `GET /models/`
+
+Retrieve a list of saved models with optional filters:
+
+* `?name=...`
+* `?description=...`
+* `?tag=...`
+
+---
+
+### `GET /results`
+
+Retrieve all saved inference results. Each result includes:
+
+* ID
+* Model ID
+* Output vector (as JSON)
+* Timestamp
 
 ---
 
 ### `DELETE /delete_model/{model_name}`
 
-Deletes the specified model and its metadata.
+Deletes the specified model:
+
+* From memory
+* From file storage
+* From metadata.json
+* From PostgreSQL (including all related results)
 
 ---
 
@@ -131,29 +154,42 @@ Deletes the specified model and its metadata.
 
 Run [`user_example.py`](./user_example.py) to:
 
-1. Load and train a model (e.g., on Iris or Digits dataset)
-2. Upload the model to the backend
-3. Run prediction requests
-4. Visualize inputs and model predictions
+1. Load and train a model
+2. Upload the model
+3. Run predictions
+4. Optionally save and view inference results
 
 ---
 
 ## 🗃️ Model Storage
 
-* Models are saved in: `storage/`
-* Metadata is saved in: `metadata/metadata.json`
+* Model files: `storage/`
+* Metadata JSON: `metadata/metadata.json`
+* Results and metadata: stored in PostgreSQL via SQLAlchemy
 
 ---
 
 ## ✅ Supported Frameworks
 
-| Framework            | File Format        | Required Libraries       | Notes                                                              |
-| -------------------- | ------------------ | ------------------------ | ------------------------------------------------------------------ |
-| **Scikit-learn**     | `.pkl` (pickle)    | `scikit-learn`, `joblib` | Supports `predict`, `predict_proba`. Optional threshold support.   |
-| **PyTorch**          | `.pt` / `.pth`     | `torch`                  | Applies `sigmoid` or `softmax` if specified in params.             |
-| **TensorFlow/Keras** | `.h5` / SavedModel | `tensorflow`             | Uses `.predict`. Thresholding supported for binary classification. |
-| **ONNX**             | `.onnx`            | `onnxruntime`            | Accepts NumPy input, returns raw or thresholded predictions.       |
-| **Pickled Models**   | `.pkl`             | Varies                   | Generic support using `framework: "pickle"` in metadata.           |
+| Framework            | File Format       | Required Libraries       | Notes                                                      |
+| -------------------- | ----------------- | ------------------------ | ---------------------------------------------------------- |
+| **Scikit-learn**     | `.pkl`            | `scikit-learn`, `joblib` | Basic classification or regression                         |
+| **PyTorch**          | `.pt`, `.pth`     | `torch`                  | Uses `.eval()` and device params                           |
+| **TensorFlow/Keras** | `.h5`, SavedModel | `tensorflow`             | Uses `.predict` for inference                              |
+| **ONNX**             | `.onnx`           | `onnxruntime`            | 6-band satellite imagery supported, thresholding available |
+| **Pickled Models**   | `.pkl`            | Custom                   | Specify `"framework": "pickle"` in metadata                |
+
+---
+
+## 📦 Database Tables
+
+### `ai_models`
+
+Stores metadata for each uploaded model.
+
+### `ai_model_results`
+
+Stores JSON-encoded inference results with timestamps.
 
 ---
 
