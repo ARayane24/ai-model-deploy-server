@@ -40,7 +40,7 @@ Optional:
 
 ```bash
 # Clone and enter the repo
-git clone <your-repo-url>
+git clone https://github.com/ARayane24/ai-model-deploy-server
 cd ai_model_api
 
 # Create a virtual environment
